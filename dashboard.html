@@ -1,0 +1,294 @@
+<!-- dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zoom Clone - Meeting</title>
+  <style>
+    
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    #video-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: black;
+    }
+
+    video {
+      width: 80%;
+      max-width: 700px;
+      border: 4px solid #007bff;
+      border-radius: 12px;
+    }
+
+    #controls {
+      background: #1f1f1f;
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .control-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 0 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .control-btn:hover {
+      background-color: #0056b3;
+    }
+    
+    #chat-window {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 300px;
+      height: 100%;
+      background-color: #202020;
+      display: none;
+      flex-direction: column;
+      padding: 10px;
+      box-shadow: -4px 0px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      background-color: #1f1f1f;
+    }
+
+    #chat-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+    }
+
+    #chat-send {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #chat-send:hover {
+      background-color: #0056b3;
+    }
+
+    #leave-btn {
+      background-color: red;
+    }
+    #participantsPanel {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+}
+
+
+  </style>
+</head>
+<body>
+
+  <div id="meeting-info">
+    <p>Meeting ID: <span id="meeting-id"></span></p>
+    <p><span id="host-name"></span></p>
+  </div>
+  
+
+  <!-- Video Section -->
+  <div id="video-container">
+    <video id="localVideo" autoplay muted></video>
+  </div>
+
+  <!-- Controls Section -->
+  <div id="controls">
+    <button class="control-btn" onclick="toggleMic()">Mute/Unmute</button>
+    <button class="control-btn" onclick="toggleCamera()">Camera On/Off</button>
+    <button class="control-btn" onclick="toggleChat()">Chat</button>
+    <button onclick="toggleParticipants()">👥 Participants</button>
+    <button class="control-btn" id="leave-btn" onclick="leaveMeeting()">Leave Meeting</button>
+  </div>
+
+  <!-- Chat Window (initially hidden) -->
+  <div id="chat-window">
+    <div id="chat-messages"></div>
+    <input type="text" id="chat-input" placeholder="Type a message..." />
+    <button id="chat-send" onclick="sendMessage()">Send</button>
+  </div>
+  <div id="participantsPanel" style="display:none; position: absolute; right: 10px; top: 70px; background: white; border: 1px solid #ccc; padding: 10px; width: 200px;color:black">
+    <h4>Participants</h4>
+    <ul id="participantsList">
+      <!-- JS will populate this -->
+    </ul>
+  </div>
+  
+
+  <script>
+    
+  const urlParams = new URLSearchParams(window.location.search);
+  const meetingId = urlParams.get("meetingId");
+  const hostName = urlParams.get("host");
+  const userName = urlParams.get("user");
+
+  document.getElementById("meeting-id").textContent = meetingId;
+
+  if (hostName) {
+    document.getElementById("host-name").textContent = `Host: ${hostName}`;
+  } else if (userName) {
+    document.getElementById("host-name").textContent = `User: ${userName}`;
+  } else {
+    document.getElementById("host-name").textContent = "Guest";
+  }
+
+
+    const video = document.getElementById("localVideo");
+    let localStream;
+    let isAudio = true;
+    let isVideo = true;
+
+    // Start the camera
+    async function startCamera() {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        video.srcObject = localStream;
+      } catch (error) {
+        alert("Camera or microphone access denied.");
+      }
+    }
+
+    // Toggle microphone (mute/unmute)
+    function toggleMic() {
+      if (!localStream) return;
+      isAudio = !isAudio;
+      localStream.getAudioTracks().forEach(track => track.enabled = isAudio);
+    }
+
+    // Toggle camera (on/off)
+    function toggleCamera() {
+      if (!localStream) return;
+      isVideo = !isVideo;
+      localStream.getVideoTracks().forEach(track => track.enabled = isVideo);
+    }
+
+    // Leave the meeting
+    function leaveMeeting() {
+      if (confirm("Are you sure you want to leave the meeting?")) {
+        window.location.href = "index.html";
+      }
+    }
+
+    // Toggle chat window visibility
+    function toggleChat() {
+      const chatWindow = document.getElementById("chat-window");
+      if (chatWindow.style.display === "none" || chatWindow.style.display === "") {
+        chatWindow.style.display = "flex";
+      } else {
+        chatWindow.style.display = "none";
+      }
+    }
+
+    // Send a message to the chat
+    function sendMessage() {
+      const input = document.getElementById("chat-input");
+      const message = input.value.trim();
+      if (message) {
+        const chat = document.getElementById("chat-messages");
+        const msgDiv = document.createElement("div");
+        msgDiv.textContent = `You: ${message}`;
+        chat.appendChild(msgDiv);
+        input.value = "";
+        chat.scrollTop = chat.scrollHeight;
+      }
+    }
+    function toggleParticipants() {
+  const panel = document.getElementById("participantsPanel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
+
+function loadParticipants() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const userName = urlParams.get("user") || "Guest";
+  const isHost = urlParams.get("host") === "true";
+
+  const participants = isHost
+    ? ["You (Host)"]
+    : ["You", "Host"];
+
+  const list = document.getElementById("participantsList");
+  list.innerHTML = "";
+
+  participants.forEach((name) => {
+    const li = document.createElement("li");
+    li.textContent = name;
+    list.appendChild(li);
+  });
+}
+
+window.onload = function () {
+  loadParticipants();
+};
+
+  function toggleParticipants() {
+    const panel = document.getElementById("participantsPanel");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+  }
+
+  function loadParticipants() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userName = urlParams.get("user") || "Guest";
+    const isHost = urlParams.get("host") === "true";
+
+    const participants = isHost
+      ? ["You (Host)"]
+      : ["You", "Host"];
+
+    const list = document.getElementById("participantsList");
+    list.innerHTML = "";
+
+    participants.forEach((name) => {
+      const li = document.createElement("li");
+      li.textContent = name;
+      list.appendChild(li);
+    });
+  }
+
+  window.onload = function () {
+    loadParticipants();
+  };
+
+
+
+
+    // Start the camera when the page loads
+    startCamera();
+  </script>
+
+<div id="participantsPanel" style="display:none; position: absolute; right: 10px; top: 70px; background: white; border: 1px solid #ccc; padding: 10px; width: 200px;">
+  <h4>Participants</h4>
+  <ul id="participantsList"></ul>
+</div>
+</body>
+</html>

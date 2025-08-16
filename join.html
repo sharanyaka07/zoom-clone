@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Join Meeting</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .join-container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #007bff;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="join-container">
+    <h2>Join a Meeting</h2>
+    <input type="text" id="userName" placeholder="Enter your name" required />
+    <input type="text" id="meetingId" placeholder="Enter Meeting ID" required />
+    <button onclick="joinMeeting()">Join</button>
+  </div>
+
+  <script>
+    function joinMeeting() {
+      const name = document.getElementById('userName').value.trim();
+      const meetingId = document.getElementById('meetingId').value.trim();
+
+      if (!name || !meetingId) {
+        alert("Please enter both your name and the meeting ID.");
+        return;
+      }
+
+      // Redirect to meeting page with parameters
+      window.location.href = `dashboard.html?meetingId=${meetingId}&user=${encodeURIComponent(name)}`;
+    }
+  </script>
+
+</body>
+</html>

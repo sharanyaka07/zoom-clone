@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Host a Zoom Clone Meeting</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eaf1ff;
+      display: flex;
+      justify-content: center; 
+      align-items: center;
+      height: 100vh;
+    }
+
+    .host-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    input {
+      padding: 10px;
+      margin: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 250px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .meeting-link {
+      display: block;
+      margin-top: 10px;
+      color: #007bff;
+      word-wrap: break-word;
+    }
+
+    #copy-status {
+      color: green;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="host-container">
+    <h2>Host a Meeting</h2>
+    <input type="text" id="meeting-id" placeholder="Enter Meeting ID" /><br />
+    <input type="text" id="host-name" placeholder="Enter Host Name" /><br />
+    <button onclick="generateMeetingLink()">Generate Meeting Link</button>
+
+    <div id="link-container" style="display:none;">
+      <p>Share this link:</p>
+      <a id="meeting-link" class="meeting-link" href="" target="_blank"></a>
+      <button onclick="copyLink()">Copy Link</button>
+      <p id="copy-status">Copied!</p>
+    </div>
+  </div>
+
+  <script>
+    function generateMeetingLink() {
+      const meetingId = document.getElementById("meeting-id").value.trim();
+      const hostName = document.getElementById("host-name").value.trim();
+
+      if (meetingId && hostName) {
+        const meetingLink = `dashboard.html?meetingId=${meetingId}&host=${encodeURIComponent(hostName)}`;
+        document.getElementById("meeting-link").href = meetingLink;
+        document.getElementById("meeting-link").textContent = meetingLink;
+        document.getElementById("link-container").style.display = 'block';
+      } else {
+        alert("Please enter both Meeting ID and Host Name.");
+      }
+    }
+
+    function copyLink() {
+      const link = document.getElementById("meeting-link").textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        document.getElementById("copy-status").style.display = "block";
+        setTimeout(() => {
+          document.getElementById("copy-status").style.display = "none";
+        }, 1500);
+      }).catch(err => {
+        alert("Failed to copy: " + err);
+      });
+    }
+  </script>
+
+</body>
+</html>
